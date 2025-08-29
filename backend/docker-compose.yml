@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  api:
+    build: ./api
+    ports:
+      - "8100:8100"
+    depends_on:
+      - redis
+
+  socket_server:
+    build: ./socket_server
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+
