@@ -1,16 +1,16 @@
+import eventlet
+eventlet.monkey_patch()
+
 import socketio
 import redis
 import json
 import threading
 
-# Create a Socket.IO server instance
 sio = socketio.Server(cors_allowed_origins='*')
 app = socketio.WSGIApp(sio)
 
-# Connect to Redis
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
 
-# Redis listener thread
 def redis_listener():
     pubsub = r.pubsub()
     pubsub.psubscribe("chatroom:*")
@@ -20,7 +20,6 @@ def redis_listener():
             room_id = data['room_id']
             sio.emit("new_message", data, room=room_id)
 
-# Socket.IO event handlers
 @sio.event
 def connect(sid, environ):
     print("Client connected:", sid)
@@ -35,6 +34,10 @@ def join(sid, data):
 def disconnect(sid):
     print("Client disconnected:", sid)
 
-# Start Redis listener in a background thread
+# Start Redis listener in background
 threading.Thread(target=redis_listener, daemon=True).start()
+
+# Start the server
+if __name__ == "__main__":
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
 

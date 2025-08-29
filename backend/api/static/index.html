@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-Time Chatroom</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+        input, button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Real-Time Chatroom</h2>
+
+    <label>Chatroom ID: <input type="text" id="roomId" value="room1"></label>
+    <button onclick="joinRoom()">Join Room</button><br>
+
+    <div id="chat"></div>
+
+    <input type="text" id="username" placeholder="Your name">
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+    const socket = io("http://192.168.1.41:5000");
+
+    socket.on("connect", () => {
+        console.log("Connected to Socket.IO server:", socket.id);
+    });
+
+    function joinRoom() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("join", { room_id: roomId });
+        appendMessage("Joined room: " + roomId);
+    }
+
+    function sendMessage() {
+        const roomId = document.getElementById("roomId").value;
+        const user = document.getElementById("username").value;
+        const text = document.getElementById("messageInput").value;
+
+        fetch(`http://192.168.1.41:8100/chatrooms/${roomId}/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user, text })
+        });
+
+        document.getElementById("messageInput").value = "";
+    }
+
+    socket.on("new_message", function(data) {
+        appendMessage(`${data.user}: ${data.text}`);
+    });
+
+    function appendMessage(msg) {
+        const chat = document.getElementById("chat");
+        const div = document.createElement("div");
+        div.textContent = msg;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    // You can remove these lines, as the functions are already in the global scope
+    // since they are not wrapped in an IIFE or module.
+    // window.joinRoom = joinRoom;
+    // window.sendMessage = sendMessage;
+</script>
+</body>
+</html>
+

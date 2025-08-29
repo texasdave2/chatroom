@@ -5,6 +5,8 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
+    networks:
+      - chatnet
 
   api:
     build: ./api
@@ -12,6 +14,8 @@ services:
       - "8100:8100"
     depends_on:
       - redis
+    networks:
+      - chatnet
 
   socket_server:
     build: ./socket_server
@@ -19,4 +23,9 @@ services:
       - "5000:5000"
     depends_on:
       - redis
+    networks:
+      - chatnet
+
+networks:
+  chatnet:
 
