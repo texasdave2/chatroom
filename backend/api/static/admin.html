@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel - Broadcast Message</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Admin Panel</h2>
+
+    <h3>Send to All Chatrooms</h3>
+    <input type="text" id="username" placeholder="Admin Name" value="Admin">
+    <input type="text" id="allMessageInput" placeholder="Message for all rooms">
+    <button onclick="sendMessageToAll()">Send to All</button>
+
+    <div id="status"></div>
+
+    <script>
+        function sendMessageToAll() {
+            const user = document.getElementById("username").value;
+            const text = document.getElementById("allMessageInput").value;
+            const statusDiv = document.getElementById("status");
+            
+            if (!text) {
+                statusDiv.textContent = "Please enter a message to send.";
+                return;
+            }
+
+            // Call the new, dedicated admin broadcast endpoint
+            fetch(`http://192.168.1.41:8100/admin/broadcast`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user, text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusDiv.textContent = `Status: ${data.status}`;
+                document.getElementById("allMessageInput").value = "";
+            })
+            .catch(error => {
+                statusDiv.textContent = `Error: ${error}`;
+                console.error("Error sending message:", error);
+            });
+        }
+    </script>
+</body>
+</html>

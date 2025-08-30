@@ -6,8 +6,6 @@
         body { font-family: Arial, sans-serif; margin: 20px; }
         #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
         input, button { margin: 5px; }
-        #chatroomList { margin-top: 20px; }
-        .room-button { margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -22,11 +20,6 @@
     <input type="text" id="messageInput" placeholder="Type a message">
     <button onclick="sendMessage()">Send</button>
 
-    <hr>
-    <h3>Available Chatrooms</h3>
-    <div id="chatroomList"></div>
-    <button onclick="fetchChatrooms()">Refresh Rooms</button>
-
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <script>
@@ -34,14 +27,12 @@
 
     socket.on("connect", () => {
         console.log("Connected to Socket.IO server:", socket.id);
-        fetchChatrooms();
     });
 
     function joinRoom() {
         const roomId = document.getElementById("roomId").value;
         socket.emit("join", { room_id: roomId });
-        appendMessage(`Joined room: ${roomId}`);
-        fetchChatrooms();
+        appendMessage("Joined room: " + roomId);
     }
 
     function sendMessage() {
@@ -58,29 +49,8 @@
         document.getElementById("messageInput").value = "";
     }
 
-    function fetchChatrooms() {
-        fetch(`http://192.168.1.41:8100/chatrooms`)
-            .then(response => response.json())
-            .then(data => {
-                const chatroomList = document.getElementById("chatroomList");
-                chatroomList.innerHTML = '';
-                data.chatrooms.forEach(roomId => {
-                    const button = document.createElement("button");
-                    button.textContent = roomId;
-                    button.className = "room-button";
-                    button.onclick = () => {
-                        document.getElementById("roomId").value = roomId;
-                        joinRoom();
-                    };
-                    chatroomList.appendChild(button);
-                });
-            })
-            .catch(error => console.error("Error fetching chatrooms:", error));
-    }
-
     socket.on("new_message", function(data) {
-        // Updated to show which room the message is for
-        appendMessage(`[${data.room_id}] ${data.user}: ${data.text}`);
+        appendMessage(`${data.user}: ${data.text}`);
     });
 
     function appendMessage(msg) {
@@ -90,6 +60,12 @@
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
+
+    // You can remove these lines, as the functions are already in the global scope
+    // since they are not wrapped in an IIFE or module.
+    // window.joinRoom = joinRoom;
+    // window.sendMessage = sendMessage;
 </script>
 </body>
 </html>
+
