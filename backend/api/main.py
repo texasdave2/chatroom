@@ -20,6 +20,25 @@ def serve_frontend():
 def serve_admin_page():
     return FileResponse("static/admin.html")
 
+# New endpoint for admin metrics
+@app.get("/admin/metrics")
+def get_admin_metrics():
+    # Get total number of unique chatrooms from the Redis set
+    total_chatrooms = r.scard("chatrooms")
+    # Get total number of connected users from the Redis counter
+    total_connected_users = r.get("connected_users")
+    
+    # Handle the case where the counter might not exist yet
+    if total_connected_users is None:
+        total_connected_users = 0
+    else:
+        total_connected_users = int(total_connected_users)
+    
+    return {
+        "chatrooms": total_chatrooms,
+        "connected_users": total_connected_users
+    }
+
 @app.post("/chatrooms/{room_id}/messages")
 async def send_message(room_id: str, request: Request):
     data = await request.json()
@@ -29,16 +48,12 @@ async def send_message(room_id: str, request: Request):
         "text": data.get("text")
     }
     
-    # Add the chatroom to a Redis set
     r.sadd("chatrooms", room_id)
-    
-    # Publish the message
     r.publish(f"chatroom:{room_id}", json.dumps(message))
     return {"status": "message published"}
 
 @app.get("/chatrooms")
 def get_chatrooms():
-    # Get all members of the 'chatrooms' set and filter out special channels
     chatrooms = [room for room in r.smembers("chatrooms") if room not in ["all", "broadcast"]]
     return {"chatrooms": chatrooms}
 
@@ -52,8 +67,5 @@ async def send_admin_broadcast(request: Request):
         "user": user,
         "text": text
     }
-    
-    # Publish to a dedicated broadcast channel
     r.publish("chatroom:broadcast", json.dumps(message))
-    
     return {"status": "message published to all clients"}
