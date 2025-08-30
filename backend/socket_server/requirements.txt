@@ -1,4 +1,3 @@
 python-socketio
-python-socketio[redis]
 redis
 eventlet

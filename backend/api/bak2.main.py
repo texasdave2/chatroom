@@ -3,12 +3,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import redis
 import json
-import os
-import google.generativeai as genai
-
-# Configure the LLM
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
 
 app = FastAPI()
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
@@ -33,66 +27,27 @@ def get_admin_metrics():
     total_chatrooms = r.scard("chatrooms")
     # Get total number of connected users from the Redis counter
     total_connected_users = r.get("connected_users")
-
+    
     # Handle the case where the counter might not exist yet
     if total_connected_users is None:
         total_connected_users = 0
     else:
         total_connected_users = int(total_connected_users)
-
+    
     return {
         "chatrooms": total_chatrooms,
         "connected_users": total_connected_users
     }
 
-# New endpoint for mood analysis data
-@app.get("/admin/mood_analysis")
-def get_mood_analysis():
-    mood_data = {}
-    # Get all keys that start with "mood_counts:"
-    mood_keys = r.keys("mood_counts:*")
-    
-    for key in mood_keys:
-        room_id = key.split(":")[1]
-        counts = r.hgetall(key)
-        mood_data[room_id] = {
-            "happy": int(counts.get("happy", 0)),
-            "sad": int(counts.get("sad", 0)),
-            "neutral": int(counts.get("neutral", 0)),
-        }
-    return mood_data
-
-def get_mood_from_llm(text: str) -> str:
-    """Sends text to an LLM for mood analysis."""
-    # This prompt is designed to be clear and specific to get a reliable response.
-    prompt = f"Analyze the following chat message and classify its mood as either 'happy', 'sad', or 'neutral'. Respond with only the label. Message: '{text}'"
-    try:
-        response = model.generate_content(prompt, generation_config={"temperature": 0.0})
-        # The response is a string, which we will lowercase for consistency.
-        return response.text.strip().lower()
-    except Exception as e:
-        print(f"LLM analysis failed: {e}")
-        return "neutral" # Default to neutral on failure
-
 @app.post("/chatrooms/{room_id}/messages")
 async def send_message(room_id: str, request: Request):
     data = await request.json()
-    text = data.get("text")
-    user = data.get("user")
-    
-    # Perform mood analysis
-    mood = get_mood_from_llm(text)
-    
-    # Store the mood in a Redis Hash for the chatroom
-    r.hincrby(f"mood_counts:{room_id}", mood, 1)
-
     message = {
         "room_id": room_id,
-        "user": user,
-        "text": text,
-        "mood": mood # You can also send the mood to the frontend if you want
+        "user": data.get("user"),
+        "text": data.get("text")
     }
-
+    
     r.sadd("chatrooms", room_id)
     r.publish(f"chatroom:{room_id}", json.dumps(message))
     return {"status": "message published"}
