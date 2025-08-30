@@ -62,17 +62,42 @@ def get_mood_analysis():
         }
     return mood_data
 
+# New endpoint for safety analysis data
+@app.get("/admin/safety_analysis")
+def get_safety_analysis():
+    safety_data = {}
+    # Get all keys that start with "safety_counts:"
+    safety_keys = r.keys("safety_counts:*")
+    
+    for key in safety_keys:
+        room_id = key.split(":")[1]
+        counts = r.hgetall(key)
+        safety_data[room_id] = {
+            "safe": int(counts.get("safe", 0)),
+            "unsafe": int(counts.get("unsafe", 0)),
+        }
+    return safety_data
+
 def get_mood_from_llm(text: str) -> str:
     """Sends text to an LLM for mood analysis."""
-    # This prompt is designed to be clear and specific to get a reliable response.
     prompt = f"Analyze the following chat message and classify its mood as either 'happy', 'sad', or 'neutral'. Respond with only the label. Message: '{text}'"
     try:
         response = model.generate_content(prompt, generation_config={"temperature": 0.0})
-        # The response is a string, which we will lowercase for consistency.
         return response.text.strip().lower()
     except Exception as e:
         print(f"LLM analysis failed: {e}")
-        return "neutral" # Default to neutral on failure
+        return "neutral"
+
+def get_safety_label_from_llm(text: str) -> str:
+    """Sends text to an LLM for safety analysis."""
+    # New prompt for safety analysis.
+    prompt = f"Analyze the following chat message for safety. Classify its content as 'safe' or 'unsafe'. Respond with only the label. Message: '{text}'"
+    try:
+        response = model.generate_content(prompt, generation_config={"temperature": 0.0})
+        return response.text.strip().lower()
+    except Exception as e:
+        print(f"LLM safety analysis failed: {e}")
+        return "safe"
 
 @app.post("/chatrooms/{room_id}/messages")
 async def send_message(room_id: str, request: Request):
@@ -82,15 +107,18 @@ async def send_message(room_id: str, request: Request):
     
     # Perform mood analysis
     mood = get_mood_from_llm(text)
-    
-    # Store the mood in a Redis Hash for the chatroom
     r.hincrby(f"mood_counts:{room_id}", mood, 1)
+
+    # Perform safety analysis
+    safety_label = get_safety_label_from_llm(text)
+    r.hincrby(f"safety_counts:{room_id}", safety_label, 1)
 
     message = {
         "room_id": room_id,
         "user": user,
         "text": text,
-        "mood": mood # You can also send the mood to the frontend if you want
+        "mood": mood,
+        "safety": safety_label # You can also send the safety label to the frontend
     }
 
     r.sadd("chatrooms", room_id)
