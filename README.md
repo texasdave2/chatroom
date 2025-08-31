@@ -26,6 +26,31 @@ The application is designed for easy deployment using Docker Compose, making it 
 
 To deploy this application, you will need to have Docker and Docker Compose installed.
 
+### File structure
+
+```
+./
+├── api
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── static
+│   │   ├── admin.html
+│   │   └── index.html
+│   └── tests
+│       ├── conftest.py
+│       ├── requirements-dev.txt
+│       └── test_integration.py
+├── docker-compose.yml
+└── socket_server
+    ├── Dockerfile
+    ├── main.py
+    └── requirements.txt
+
+```
+
+
+
 ### 1. Get an API Key
 
 Obtain a Google API key from [Google AI Studio]This key is required for the LLM analysis.
@@ -34,5 +59,19 @@ Obtain a Google API key from [Google AI Studio]This key is required for the LLM 
 
 In the root directory of the project, create a `.env` file with the following content:
 
-```env
+```
 GOOGLE_API_KEY=your_api_key_here
+```
+
+### 3. Build and run containers
+
+
+```
+docker compose up -d --build
+```
+
+
+
+
+
+
