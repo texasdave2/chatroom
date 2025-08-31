@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # export env var
-ENV GOOGLE_API_KEY="AIzaSyDvttjJ9rioxzK_pk40J2kPFjlUsWNkLPU"
+ENV GOOGLE_API_KEY=$GOOGLE_API_KEY
 
 # Run the FastAPI app with Uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8100"]
