@@ -62,7 +62,7 @@ To deploy this application, you will need to have Docker and Docker Compose inst
 
 4.  **Check logs**: Check the logs for each of the services first by checking the docker processes then checking log output.
 
-    ```
+   ```
 docker ps 
 
 
@@ -71,7 +71,7 @@ e58c82faf125   backend-api                                                "uvico
 88514691a283   redis:latest                                               "docker-entrypoint.s…"   12 hours ago   Up 12 hours   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp   backend-redis-1
     ```
 
-    ```
+   ```
 docker logs backend-socket_server
 
    ```
