@@ -26,6 +26,30 @@ Agents are simply functions that employ an LLM to do useful tasks. In the chatro
 
 The code in this repo is for a demo deployment of a small agentic real-time chatroom using Docker. The demo utilizes much of the same core technologies as you would find in a production version such as FastAPI, [Socket.io](http://socket.io), Redis, and LLM agents. For more information on launching the demo version, please see the instructions below.
 
+
+### Project Structure:
+
+``` 
+.
+├── backend/
+│   ├── api/
+│   │   ├── Dockerfile
+│   │   ├── main.py
+│   │   ├── requirements.txt
+│   │   └── static/
+│   │       ├── admin.html
+│   │       └── index.html
+│   ├── docker-compose.yml
+│   ├── .env
+│   ├── socket_server/
+│   │   ├── Dockerfile
+│   │   ├── main.py
+│   │   └── requirements.txt
+└── README.md
+
+```
+
+
 ### System Requirements:
 
   - Ubuntu 22.04
@@ -85,28 +109,6 @@ Once the application is running, you can access the following endpoints in your 
   - **User Interface**: Navigate to `http://localhost:8100` to access the main chatroom. Select the room you want.  The default room is "room1". Click JOIN and then enter a username and send a message to start.
   - **LLM assistant:** simply type `@assistant` (that's the @ symbol and the work assistant) followed by your query to access the LLM directly in the chat.
   - **Admin Panel**: Navigate to `http://localhost:8100/admin` to access the administrator dashboard. Here you can see live metrics and send broadcast messages to all users in all rooms.
-
-### Project Structure:
-
-``` 
-.
-├── backend/
-│   ├── api/
-│   │   ├── Dockerfile
-│   │   ├── main.py
-│   │   ├── requirements.txt
-│   │   └── static/
-│   │       ├── admin.html
-│   │       └── index.html
-│   ├── docker-compose.yml
-│   ├── .env
-│   ├── socket_server/
-│   │   ├── Dockerfile
-│   │   ├── main.py
-│   │   └── requirements.txt
-└── README.md
-
-```
 
 ## Screenshots
 
