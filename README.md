@@ -98,7 +98,13 @@ Once the application is running, you can access the following endpoints in your 
   - In-chat LLM assistant query using “@assistant” flag
   - Admin broadcast ability
 
-*(No inline graphics provided in the document for the user interface screenshot)*
+
+
+
+![image](images/chatroom-GUI-user1.png)
+
+![image](images/chatroom-GUI-user2.png)
+
 
 ### Admin Dashboard:
 
@@ -107,13 +113,19 @@ Once the application is running, you can access the following endpoints in your 
   - Mood analysis
   - Safety analysis
 
-*(No inline graphics provided in the document for the admin dashboard screenshot)*
+
+![image](images/chatroom-admin-dash.png)
+
+
 
 ## Production Deployment
 
 ### Production Systems Reference Diagram
 
-*(No inline graphics provided in the document for the production systems reference diagram)*
+
+![image](images/chatroom-arch-diagram.png)
+
+
 
 A production deployment would use Helm in a multi-node Kubernetes environment for high availability and pod auto-scaling. Various storage classes are made available for local block, object and file storage. GPU nodes are reserved for the LLM instances. A high-level view of what instances and pods are needed:
 
