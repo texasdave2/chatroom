@@ -4,6 +4,12 @@ from fastapi.staticfiles import StaticFiles
 import redis
 import json
 import os
+import google.generativeai as genai
+import textwrap
+
+# Configure the LLM
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 app = FastAPI()
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
@@ -73,33 +79,51 @@ def get_safety_analysis():
         }
     return safety_data
 
+def get_assistant_response_from_llm(prompt: str) -> str:
+    """Sends a prompt to the LLM and returns a free-form text response."""
+    try:
+        response = model.generate_content(prompt)
+        # Use textwrap.dedent to remove leading whitespace from the response
+        return textwrap.dedent(response.text.strip())
+    except Exception as e:
+        print(f"LLM generation failed: {e}")
+        return "Sorry, I am unable to generate a response right now."
+
 @app.post("/chatrooms/{room_id}/messages")
 async def send_message(room_id: str, request: Request):
     data = await request.json()
     text = data.get("text")
     user = data.get("user")
+    
+    # Check if the message is for the AI assistant
+    if text.startswith("@assistant"):
+        user_prompt = text.replace("@assistant", "", 1).strip()
+        assistant_response = get_assistant_response_from_llm(user_prompt)
+        
+        # Publish the assistant's response to the chatroom
+        assistant_message = {
+            "room_id": room_id,
+            "user": "Assistant",
+            "text": assistant_response
+        }
+        r.publish(f"chatroom:{room_id}", json.dumps(assistant_message))
 
-    # Message payload for real-time display
+    # Existing logic for background analysis
+    analysis_data = {
+        "room_id": room_id,
+        "text": text
+    }
+    r.publish("analysis_queue", json.dumps(analysis_data))
+
+    # Existing logic for the user's message
     message = {
         "room_id": room_id,
         "user": user,
         "text": text
     }
-
-    # Message payload for background analysis
-    analysis_data = {
-        "room_id": room_id,
-        "text": text
-    }
-
-    # Publish to the real-time chatroom channel
     r.publish(f"chatroom:{room_id}", json.dumps(message))
-    
-    # Publish to the new analysis queue for background processing
-    r.publish("analysis_queue", json.dumps(analysis_data))
 
     r.sadd("chatrooms", room_id)
-    
     return {"status": "message published"}
 
 @app.get("/chatrooms")
@@ -112,7 +136,7 @@ async def send_admin_broadcast(request: Request):
     data = await request.json()
     user = data.get("user")
     text = data.get("text")
-
+    
     message = {
         "user": user,
         "text": text
