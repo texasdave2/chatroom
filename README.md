@@ -155,6 +155,7 @@ A production deployment would use Helm in a multi-node Kubernetes environment fo
       - Basic chat analysis model, smaller, quantized for speed / Llama 3 - 8b
       - Reasoning model for agents, larger / Llama 3 - 70b or better
       - Milvus used as a vector db as user RAG will inevitably be used in some form.
+      - Langgraph and Langsmith can be used for more complex agent orchestration
   - Monitoring cluster, multinode Prometheus and Grafana
   - Storage is a combination of local SSD, Object and Block storage.
 
