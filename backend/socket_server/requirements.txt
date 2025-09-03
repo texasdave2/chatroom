@@ -1,3 +1,4 @@
 python-socketio
 redis
 eventlet
+google-generativeai

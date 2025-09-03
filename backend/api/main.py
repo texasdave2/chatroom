@@ -4,8 +4,6 @@ from fastapi.staticfiles import StaticFiles
 import redis
 import json
 import os
-from mood_agent import get_mood_from_llm
-from safety_agent import get_safety_label_from_llm
 
 app = FastAPI()
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
@@ -81,24 +79,27 @@ async def send_message(room_id: str, request: Request):
     text = data.get("text")
     user = data.get("user")
 
-    # Perform mood analysis using the imported function
-    mood = get_mood_from_llm(text)
-    r.hincrby(f"mood_counts:{room_id}", mood, 1)
-
-    # Perform safety analysis using the imported function
-    safety_label = get_safety_label_from_llm(text)
-    r.hincrby(f"safety_counts:{room_id}", safety_label, 1)
-
+    # Message payload for real-time display
     message = {
         "room_id": room_id,
         "user": user,
-        "text": text,
-        "mood": mood,
-        "safety": safety_label
+        "text": text
     }
 
-    r.sadd("chatrooms", room_id)
+    # Message payload for background analysis
+    analysis_data = {
+        "room_id": room_id,
+        "text": text
+    }
+
+    # Publish to the real-time chatroom channel
     r.publish(f"chatroom:{room_id}", json.dumps(message))
+    
+    # Publish to the new analysis queue for background processing
+    r.publish("analysis_queue", json.dumps(analysis_data))
+
+    r.sadd("chatrooms", room_id)
+    
     return {"status": "message published"}
 
 @app.get("/chatrooms")
