@@ -4,8 +4,11 @@ from fastapi.staticfiles import StaticFiles
 import redis
 import json
 import os
-from mood_agent import get_mood_from_llm
-from safety_agent import get_safety_label_from_llm
+import google.generativeai as genai
+
+# Configure the LLM
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 app = FastAPI()
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
@@ -48,7 +51,7 @@ def get_mood_analysis():
     mood_data = {}
     # Get all keys that start with "mood_counts:"
     mood_keys = r.keys("mood_counts:*")
-
+    
     for key in mood_keys:
         room_id = key.split(":")[1]
         counts = r.hgetall(key)
@@ -65,7 +68,7 @@ def get_safety_analysis():
     safety_data = {}
     # Get all keys that start with "safety_counts:"
     safety_keys = r.keys("safety_counts:*")
-
+    
     for key in safety_keys:
         room_id = key.split(":")[1]
         counts = r.hgetall(key)
@@ -75,17 +78,38 @@ def get_safety_analysis():
         }
     return safety_data
 
+def get_mood_from_llm(text: str) -> str:
+    """Sends text to an LLM for mood analysis."""
+    prompt = f"Analyze the following chat message and classify its mood as either 'happy', 'sad', or 'neutral'. Respond with only the label. Message: '{text}'"
+    try:
+        response = model.generate_content(prompt, generation_config={"temperature": 0.0})
+        return response.text.strip().lower()
+    except Exception as e:
+        print(f"LLM analysis failed: {e}")
+        return "neutral"
+
+def get_safety_label_from_llm(text: str) -> str:
+    """Sends text to an LLM for safety analysis."""
+    # New prompt for safety analysis.
+    prompt = f"Analyze the following chat message for safety. Classify its content as 'safe' or 'unsafe'. Respond with only the label. Message: '{text}'"
+    try:
+        response = model.generate_content(prompt, generation_config={"temperature": 0.0})
+        return response.text.strip().lower()
+    except Exception as e:
+        print(f"LLM safety analysis failed: {e}")
+        return "safe"
+
 @app.post("/chatrooms/{room_id}/messages")
 async def send_message(room_id: str, request: Request):
     data = await request.json()
     text = data.get("text")
     user = data.get("user")
-
-    # Perform mood analysis using the imported function
+    
+    # Perform mood analysis
     mood = get_mood_from_llm(text)
     r.hincrby(f"mood_counts:{room_id}", mood, 1)
 
-    # Perform safety analysis using the imported function
+    # Perform safety analysis
     safety_label = get_safety_label_from_llm(text)
     r.hincrby(f"safety_counts:{room_id}", safety_label, 1)
 
@@ -94,7 +118,7 @@ async def send_message(room_id: str, request: Request):
         "user": user,
         "text": text,
         "mood": mood,
-        "safety": safety_label
+        "safety": safety_label # You can also send the safety label to the frontend
     }
 
     r.sadd("chatrooms", room_id)
@@ -111,11 +135,10 @@ async def send_admin_broadcast(request: Request):
     data = await request.json()
     user = data.get("user")
     text = data.get("text")
-
+    
     message = {
         "user": user,
         "text": text
     }
     r.publish("chatroom:broadcast", json.dumps(message))
     return {"status": "message published to all clients"}
-

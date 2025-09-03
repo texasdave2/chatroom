@@ -12,6 +12,8 @@ services:
     build: ./api
     ports:
       - "8100:8100"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     depends_on:
       - redis
     networks:
