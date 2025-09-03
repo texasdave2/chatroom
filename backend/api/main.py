@@ -95,19 +95,6 @@ async def send_message(room_id: str, request: Request):
     text = data.get("text")
     user = data.get("user")
     
-    # Check if the message is for the AI assistant
-    if text.startswith("@assistant"):
-        user_prompt = text.replace("@assistant", "", 1).strip()
-        assistant_response = get_assistant_response_from_llm(user_prompt)
-        
-        # Publish the assistant's response to the chatroom
-        assistant_message = {
-            "room_id": room_id,
-            "user": "Assistant",
-            "text": assistant_response
-        }
-        r.publish(f"chatroom:{room_id}", json.dumps(assistant_message))
-
     # Existing logic for background analysis
     analysis_data = {
         "room_id": room_id,
@@ -123,6 +110,19 @@ async def send_message(room_id: str, request: Request):
     }
     r.publish(f"chatroom:{room_id}", json.dumps(message))
 
+    # Check if the message is for the AI assistant and publish its response
+    if text.startswith("@assistant"):
+        user_prompt = text.replace("@assistant", "", 1).strip()
+        assistant_response = get_assistant_response_from_llm(user_prompt)
+        
+        # Publish the assistant's response to the chatroom
+        assistant_message = {
+            "room_id": room_id,
+            "user": "Assistant",
+            "text": assistant_response
+        }
+        r.publish(f"chatroom:{room_id}", json.dumps(assistant_message))
+    
     r.sadd("chatrooms", room_id)
     return {"status": "message published"}
 
