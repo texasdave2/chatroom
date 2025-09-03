@@ -34,7 +34,7 @@ The code in this repo is for a demo deployment of a small agentic real-time chat
   - Locally hosted LLM (8b or higher) or cloud LLM, in this case Google API
   - Local hosted LLM will require Nvidia container toolkit as well as updated Nvidia drivers
 
-**Demo Deployment Features**
+### Demo Deployment Features:
 
   - **Real-Time Messaging**: Users can join and participate in various chatrooms with messages appearing instantly.
   - **Split message queues**: Dedicated Chat queue for lowest latencty and dedicated analysis queue.
@@ -60,15 +60,15 @@ To deploy this application, you will need to have Docker and Docker Compose inst
     
     ```
 
-**Usage**
+### Usage:
 
 Once the application is running, you can access the following endpoints in your browser:
 
   - **User Interface**: Navigate to `http://localhost:8100` to access the main chatroom. Select the room you want.  The default room is "room1". Click JOIN and then enter a username and send a message to start.
-  - **LLM assistant:** simply type `@assistant` and your query to access the LLM directly in the chat.
+  - **LLM assistant:** simply type `@assistant` (that's the @ symbol and the work assistant) followed by your query to access the LLM directly in the chat.
   - **Admin Panel**: Navigate to `http://localhost:8100/admin` to access the administrator dashboard. Here you can see live metrics and send broadcast messages to all users in all rooms.
 
-**Project Structure**
+### Project Structure:
 
 ``` 
 .
@@ -138,11 +138,11 @@ A production deployment would use Helm in a multi-node Kubernetes environment fo
   - Monitoring cluster, multinode Prometheus and Grafana
   - Storage is a combination of local SSD, Object and Block storage.
 
-## Testability
+### Testability
 
 Since the individual major processes are broken out into their own separate containers, unit and integration testing is simplified. Pytest and some synthetic data can be used to test API health as well as LLM analysis results. I would suggest using a standalone non-HA dev environment deployed using Helm rather than mocking Redis and socket comms, this would in my opinion cause more trouble and introduce more errors to debug. Using a small dev cluster will ensure the test results are aligned to what is expected in the prod environment.
 
-## Maintainability
+### Maintainability
 
 I would suggest leveraging infrastructure as code as much as possible with tools like Helm, Ansible and Terraform when needed. Implement auto-scaling rules where necessary to keep human intervention to a minimum during low or peak resource needs. I would strive for repeatable, consistent environments along the entire stack from dev to prod.
 
@@ -150,7 +150,7 @@ For the codebase, the goal is to keep it modular and segregate logic into distin
 
 For monitoring infra and various chatroom metrics, I would suggest the Prometheus, Grafana and Alertmanager stack. These are reliable, low impact and proven in production. Alerts such as latency, error rates and resource usage are all possible, but we can also monitor LLM performance, token counts, mood and safety analytics.
 
-## Security and Safety
+### Security and Safety
 
 To ensure user safety and overall security of PI and conversation data all conversations should be encrypted on the way in and out. Pod networks should be locked down to only allow traffic between pods and authorized services, nothing is left wide open and firewall policies are maintained and scanned from within and externally.
 
