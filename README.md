@@ -6,7 +6,9 @@ How do we increase value, boost user engagement, and reduce costs in a real-time
 
 ## Workflow Diagram
 
-*(No inline graphics provided in the document for the workflow diagram)*
+
+![image](images/chatroom-workflow.png)
+
 
 ## Overview
 
@@ -22,18 +24,7 @@ Agents are simply functions that employ an LLM to do useful tasks. In the chatro
 
 ### Demo Deployment
 
-The code in this repo is for a demo deployment of a small agentic real-time chatroom using Docker. The demo utilizes much of the same core technologies as you would find in the production version such as FastAPI, [Socket.io](http://socket.io), Redis, and LLM agents. For more information on launching the demo version, please see the instructions below.
-
-**Demo Deployment Features**
-
-  - **Real-Time Messaging**: Users can join and participate in various chatrooms with messages appearing instantly.
-  - **In-chat LLM Assistant**: simply type `@assistant` and your query to access the LLM directly in the chat.
-  - **Persistent Chatrooms**: Chatrooms are stored in Redis, allowing them to persist even after all users have left.
-  - **Live Admin Panel**: A dedicated admin interface that provides real-time insights into the chat network.
-  - **Live Metrics**: Displays the total number of chatrooms and the total number of connected users.
-  - **Mood Analysis Agent**: Analyzes each message for sentiment and provides a count of "happy," "sad," and "neutral" messages per chatroom.
-  - **Safety Analysis Agent**: Classifies messages as "safe" or "unsafe," providing a crucial moderation tool.
-  - **Admin Broadcast**: Allows an administrator to send a message to every chatroom simultaneously.
+The code in this repo is for a demo deployment of a small agentic real-time chatroom using Docker. The demo utilizes much of the same core technologies as you would find in a production version such as FastAPI, [Socket.io](http://socket.io), Redis, and LLM agents. For more information on launching the demo version, please see the instructions below.
 
 ### System Requirements:
 
@@ -43,13 +34,25 @@ The code in this repo is for a demo deployment of a small agentic real-time chat
   - Locally hosted LLM (8b or higher) or cloud LLM, in this case Google API
   - Local hosted LLM will require Nvidia container toolkit as well as updated Nvidia drivers
 
+**Demo Deployment Features**
+
+  - **Real-Time Messaging**: Users can join and participate in various chatrooms with messages appearing instantly.
+  - **Split message queues**: Dedicated Chat queue for lowest latencty and dedicated analysis queue.
+  - **In-chat LLM Assistant**: simply type `@assistant` followed by your query to access the LLM directly in the chat.
+  - **Persistent Chatrooms**: Chatrooms are stored in Redis, allowing them to persist even after all users have left.
+  - **Live Admin Panel**: A dedicated admin interface that provides real-time insights into the chat network.
+  - **Live Metrics**: Displays the total number of chatrooms and the total number of connected users.
+  - **Mood Analysis Agent**: Analyzes each message for sentiment and provides a count of "happy," "sad," and "neutral" messages per chatroom.
+  - **Safety Analysis Agent**: Classifies messages as "safe" or "unsafe," providing a crucial moderation tool.
+  - **Admin Broadcast**: Allows an administrator to send a message to every chatroom simultaneously.
+
 To deploy this application, you will need to have Docker and Docker Compose installed.
 
 1.  **Get an API Key**: Obtain a Google API key from Google AI Studio. This key is required for the LLM analysis.
 2.  **Create a .env file**: In the root directory of the project, create a `.env` file with the following content:
     ``` 
     GOOGLE_API_KEY=your_api_key_here
-    
+    SERVER_IP=your_server_ip  
     ```
 3.  **Run with Docker Compose**: Execute the following command in your terminal. This will build the images and start all the services (API, Socket.IO server, and Redis) in the background.
     ``` bash
@@ -61,9 +64,9 @@ To deploy this application, you will need to have Docker and Docker Compose inst
 
 Once the application is running, you can access the following endpoints in your browser:
 
-  - **User Interface**: Navigate to `http://localhost:8100` to access the main chatroom. Enter a username and a chatroom name to start.
-  - **LLM assistant:** simply type `@assistant` and your query to access the LLM directly.
-  - **Admin Panel**: Navigate to `http://localhost:8100/admin` to access the administrator dashboard. Here you can see live metrics and send broadcast messages.
+  - **User Interface**: Navigate to `http://localhost:8100` to access the main chatroom. Select the room you want.  The default room is "room1". Click JOIN and then enter a username and send a message to start.
+  - **LLM assistant:** simply type `@assistant` and your query to access the LLM directly in the chat.
+  - **Admin Panel**: Navigate to `http://localhost:8100/admin` to access the administrator dashboard. Here you can see live metrics and send broadcast messages to all users in all rooms.
 
 **Project Structure**
 
