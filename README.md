@@ -62,19 +62,19 @@ To deploy this application, you will need to have Docker and Docker Compose inst
 
 4.  **Check logs**: Check the logs for each of the services first by checking the docker processes then checking log output.
 
-```
+    ```
 docker ps 
 
 
-    3ab7f8623e05   backend-socket_server                                      "python main.py"         12 hours ago   Up 12 hours   0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp   backend-socket_server-1
+3ab7f8623e05   backend-socket_server                                      "python main.py"         12 hours ago   Up 12 hours   0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp   backend-socket_server-1
 e58c82faf125   backend-api                                                "uvicorn main:app --…"   12 hours ago   Up 12 hours   0.0.0.0:8100->8100/tcp, [::]:8100->8100/tcp   backend-api-1
 88514691a283   redis:latest                                               "docker-entrypoint.s…"   12 hours ago   Up 12 hours   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp   backend-redis-1
-```
+    ```
 
-```
+    ```
 docker logs backend-socket_server
 
-```
+   ```
 
 
 
